@@ -2,6 +2,7 @@
 pragma solidity ^0.6.0;
 
 //for the correct math with ether/wei
+//got the safemath library from openzeppelin-contracts : https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol
 import "safemath.sol";
 
 contract splitter{
@@ -42,7 +43,6 @@ contract splitter{
         );
 
     //setting the function which splits the ether
-    //if there are any remainders they're going back to the sender
     function split(address _one, address _two) public payable CorrectRecipients(_one, _two){
         //defining balance as the value sended by the messenger
 
