@@ -14,13 +14,16 @@ contract splitter{
 
     //setting up the right addresses on this contract
     modifier CorrectRecipients(address _one, address _two){
-        require(_one != _two, "the recpipients can't be the same"); //some guy could go in with the same address
-        require(msg.sender != _one && msg.sender != _two, "the sender can't be a recipient"); //ALice isn't allowed to get money
-        require(_one != address(0x0) && _two != address(0x0), "the addresses can't be 0x0"); //Fake addresses are not allowed
+       //some guy could go in with the same address
+        require(_one != _two, "the recpipients can't be the same");
+        //ALice isn't allowed to get money
+        require(msg.sender != _one && msg.sender != _two, "the sender can't be a recipient");
+        //Fake addresses are not allowed
+        require(_one != address(0x0) && _two != address(0x0), "the addresses can't be 0x0");
         _;
     }
 
-    //just an event for showing the right value splittet
+    //just an event for showing the right value splittet in transactionlog
     event rightValue(
         uint value1
         );
@@ -45,8 +48,9 @@ contract splitter{
 
         //the value must be bigger than zero
         require(msg.value > 0, "zero can't be splitted");
-        //value mod 2 == 0; might be a useful requirement
-        //require(msg.value %2 == 0, "zero can't be splitted");
+
+        //value mod 2 == 0; might be a useful requirement?
+        //require(msg.value %2 == 0, "error %2");
 
         //division with safemath
         uint tvalue = msg.value.div(2);
@@ -60,6 +64,7 @@ contract splitter{
 
     }
     //Let the user withdraw their ether
+    //withdraw is a useful function because only the recipients are allowed to take the ether once!
     function withdrawTheSplit() public returns(bool done){
         //saving a local variable
         uint withdraw = balance[msg.sender];
