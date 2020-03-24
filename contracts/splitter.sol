@@ -1,9 +1,9 @@
 //I think i got some issues with the compiler version..
-pragma solidity ^0.6.0;
+pragma solidity ^0.5.8;
 
 //for the correct math with ether/wei
 //got the safemath library from openzeppelin-contracts : https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol
-import "safemath.sol";
+import "./safemath.sol";
 
 contract splitter{
     //using the library
