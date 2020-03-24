@@ -3,9 +3,12 @@ pragma solidity ^0.5.8;
 
 //for the correct math with ether/wei
 //got the safemath library from openzeppelin-contracts : https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/SafeMath.sol
-import "./safemath.sol";
+//import "./safemath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+//for pausing
+import "./paused.sol";
 
-contract splitter{
+contract Splitter is Paused{
     //using the library
     using SafeMath for uint;
    // using safemath for uint;
@@ -15,16 +18,13 @@ contract splitter{
 
     //setting up the right addresses on this contract
     modifier CorrectRecipients(address _one, address _two){
-       //some guy could go in with the same address
-        require(_one != _two, "the recpipients can't be the same");
-        //ALice isn't allowed to get money
-        require(msg.sender != _one && msg.sender != _two, "the sender can't be a recipient");
-        //Fake addresses are not allowed
-        require(_one != address(0x0) && _two != address(0x0), "the addresses can't be 0x0");
+        require(_one != _two, "the recpipients can't be the same"); //some guy could go in with the same address
+        require(msg.sender != _one && msg.sender != _two, "the sender can't be a recipient"); //ALice isn't allowed to get money
+        require(_one != address(0x0) && _two != address(0x0), "the addresses can't be 0x0"); //Fake addresses are not allowed
         _;
     }
 
-    //just an event for showing the right value splittet in transactionlog
+    //just an event for showing the right value splittet
     event rightValue(
         uint value1
         );
@@ -43,29 +43,34 @@ contract splitter{
         );
 
     //setting the function which splits the ether
-    function split(address _one, address _two) public payable CorrectRecipients(_one, _two){
+    //if there are any remainders they're going back to the sender
+    function split(address _one, address _two) public payable isRunning CorrectRecipients(_one, _two){
         //defining balance as the value sended by the messenger
 
         //the value must be bigger than zero
         require(msg.value > 0, "zero can't be splitted");
 
-        //value mod 2 == 0; might be a useful requirement?
-        //require(msg.value %2 == 0, "error %2");
-
         //division with safemath
         uint tvalue = msg.value.div(2);
+        uint remaindervalue = msg.value.mod(2);
+
+        if(remaindervalue > 0){
+            balance[msg.sender] = balance[msg.sender] + remaindervalue;
+        }
+
         //logging the value
         emit rightValue(tvalue);
         //using in event for logging all participants
         emit Balancesplittet(msg.sender, _one, _two, tvalue);
+        //there must be anything left on the contract..
+
         //adding the value to account _one and _two
         balance[_one] = balance[_one] + tvalue;
         balance[_two] = balance[_two] + tvalue;
 
     }
     //Let the user withdraw their ether
-    //withdraw is a useful function because only the recipients are allowed to take the ether once!
-    function withdrawTheSplit() public returns(bool done){
+    function withdrawTheSplit() public isRunning returns(bool done){
         //saving a local variable
         uint withdraw = balance[msg.sender];
         //it must be bigger than zero
