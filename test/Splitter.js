@@ -1,8 +1,8 @@
 const splitter = artifacts.require("splitter.sol");
 
-contract('Splitter', (accounts) => {
+contract('splitter', (accounts) => {
 
-  console.log(web3.currentProvider)
+  //console.log(web3.currentProvider)
 
   it("there should be 3 accounts, the first one needs 3 Ether", async() => {
     const splitterinstance = await splitter.deployed();
