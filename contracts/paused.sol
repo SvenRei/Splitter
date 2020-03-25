@@ -9,26 +9,26 @@ contract Paused is Owned{
     event LogPausedContract(address sender);
     event LogResumedContract(address sender);
 
-    modifier isRunning{
-        require(paused == false, "the contract is isPaused");
+    modifier whenRunning{
+        require(paused == false, "the contract is whenPaused");
         _;
     }
 
-    modifier isPaused{
-        require(paused != false, "the contract is isRunning");
+    modifier whenPaused{
+        require(paused != false, "the contract is whenRunning");
         _;
     }
 
-    function checkpaused() public view returns(bool _paused) {
+    function IsPaused() public view returns(bool _paused) {
         return paused;
     }
 
-    function pauseContract() public onlyOwner isRunning{
+    function pause() public onlyOwner whenRunning{
         paused = true;
         emit LogPausedContract(msg.sender);
     }
 
-    function resume() public onlyOwner isPaused{
+    function resume() public onlyOwner whenPaused{
         paused = false;
         emit LogResumedContract(msg.sender);
     }
