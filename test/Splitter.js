@@ -22,15 +22,19 @@ contract('Splitter', (accounts) => {
     contractInstance =  await Splitter.new({from: account_sender});
   });
 
-
+  //test if the contract can be paused
   it("the contract should be paused, if the function is called", async() => {
-    await contractInstance.pause({ from: account_sender });
-    //truffleAssert.eventEmitted(pause, "LogPausedContract");
-    assert.strictEqual(await contractInstance.IsPaused() , true, "the contract isn't paused");
+    //call pause from account_sender
+    const logPause = await contractInstance.pause({ from: account_sender });
+    truffleAssert.eventEmitted(logPause, "LogPausedContract");
+    //plotting
+    //truffleAssert.prettyPrintEmittedEvents(logPause)
 
-
+    //or the short way..
+    //assert.strictEqual(await contractInstance.IsPaused() , true, "the contract isn't paused");
   });
 
+  //test if the contract can be paused by accounts != owner
   it("pausing from another account than account_sender isn't allowed", async() => {
       await truffleAssert.reverts(
         contractInstance.pause({from: account_one}),
@@ -38,7 +42,21 @@ contract('Splitter', (accounts) => {
     );
   });
 
+  //test if the splitter contract starts with IsPausd == false
+  it("IsPaused should be startet false", async() => {
+      assert.strictEqual(await contractInstance.IsPaused(), false, "IsPaused==true");
+  }),
+
+  //test if the contract can be resumed
+  it("the contract should be resumed, if the function is called", async() => {
+    await contractInstance.pause({ from: account_sender });
+    await contractInstance.resume({ from: account_sender});
+      assert.strictEqual(await contractInstance.IsPaused() , false , "the contract is paused");
+  });
+
+  //test if the contract can be resumed by a account != owner
   it("resume from another account than account_sender isn't allowed", async() => {
+      await contractInstance.pause({ from: account_sender});
       await truffleAssert.reverts(
         contractInstance.resume({from: account_one}),
         "The sender must be the owner"
