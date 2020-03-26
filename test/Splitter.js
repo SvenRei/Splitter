@@ -115,7 +115,7 @@ contract('Splitter', (accounts) => {
 
     //getting the balance after withdraw
     const balanceAfter = await web3.eth.getBalance(account_one);
-    //test if expectedBalanceAfter == balanceAfter 
+    //test if expectedBalanceAfter == balanceAfter
     assert.strictEqual(expectedBalanceAfter.toString(), balanceAfter.toString(), "Balance of account_one isn't right");
   });
 
