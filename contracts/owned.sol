@@ -4,7 +4,7 @@ contract Owned{
 
     address private owner;
 
-    event LogChangeOwner(address indexed sender, address newOwner);
+    event LogChangeOwner(address indexed sender, address indexed newOwner);
 
     constructor() public {
       owner = msg.sender;
@@ -17,7 +17,7 @@ contract Owned{
 
 
     function changeOwner(address newOwner) public onlyOwner returns(bool success){
-        require(newOwner!=address(0x0), "The address of the new owner should not be empty");
+        require(newOwner != address(0x0), "The address of the new owner should not be empty");
         owner = newOwner;
         emit LogChangeOwner(msg.sender, newOwner);
         return true;
