@@ -1,29 +1,29 @@
 pragma solidity ^0.5.8;
 
-import "./owned.sol";
+import "./Owned.sol";
 
 contract Paused is Owned{
 
      bool private paused;
 
-    event LogPausedContract(address sender);
-    event LogResumedContract(address sender);
+    event LogPausedContract(address indexed sender);
+    event LogResumedContract(address indexed sender);
 
     modifier whenRunning{
-        require(paused == false, "the contract is whenPaused");
+        require(!paused, "is paused");
         _;
     }
 
     modifier whenPaused{
-        require(paused != false, "the contract is whenRunning");
+        require(paused, "is runnnig");
         _;
     }
 
-    function IsPaused() public view returns(bool _paused) {
+    function isPaused() public view returns(bool _paused) {
         return paused;
     }
 
-    function pause() public onlyOwner whenRunning{
+    function pause() public onlyOwner whenRunning {
         paused = true;
         emit LogPausedContract(msg.sender);
     }
