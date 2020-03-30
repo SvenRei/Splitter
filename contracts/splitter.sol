@@ -1,9 +1,9 @@
 pragma solidity ^0.5.8;
 
 //for pausing
-import "./paused.sol";
+import "./Paused.sol";
 //for the correct math with ether/wei
-import "./safemath.sol";
+import "./Safemath.sol";
 
 
 contract Splitter is Paused{
@@ -17,39 +17,40 @@ contract Splitter is Paused{
     // Log who is sending, who are the recipients, which amount will be splittet
     event LogSplit(
         address indexed from,
-        address indexed _one,
-        address indexed _two,
-        uint value
+        address indexed one,
+        address indexed two,
+        uint sendAmount
         );
     //record who is withdrawing ether/wei
-    event LogWithdraw(
+    event LogWithdrew(
         address indexed from,
-        uint value2
+        uint remainder
         );
 
     //setting the function which splits the ether
     //if there are any remainders they're going back to the sender
-    function split(address _one, address _two) public payable whenRunning {
-        require(_one != _two, "the recpipients can't be the same"); //some guy could go in with the same address
-        require(msg.sender != _one && msg.sender != _two, "the sender can't be a recipient"); //ALice isn't allowed to get money
-        require(_one != address(0x0) && _two != address(0x0), "the addresses can't be 0x0"); //Fake addresses are not allowed
+    function split(address one, address two) public payable whenRunning {
+        require(one != two, "the recpipients can't be the same"); //some guy could go in with the same address
+        require(msg.sender != one && msg.sender != two, "the sender can't be a recipient"); //ALice isn't allowed to get money
+        require(one != address(0x0) && two != address(0x0), "the addresses can't be 0x0"); //Fake addresses are not allowed
         //defining balance as the value sended by the messenger
 
         //the value must be bigger than zero
         require(msg.value > 0, "zero can't be splitted");
 
         //division with safemath
-        uint tvalue = msg.value.div(2);
-        uint remaindervalue = msg.value.mod(2);
+        uint half = msg.value.div(2);
+        uint remainder = msg.value.mod(2);
 
-        if(remaindervalue > 2){
-            balances[msg.sender] = balances[msg.sender].add(remaindervalue);
+        if(remainder != 0){
+          balances[msg.sender] = balances[msg.sender].add(remainder);
         }
+
         //using in event for logging all participants
-        emit LogSplit(msg.sender, _one, _two, tvalue);
+        emit LogSplit(msg.sender, one, two, msg.value);
         //Putting in safemath
-        balances[_one] = balances[_one].add(tvalue);
-        balances[_two] = balances[_two].add(tvalue);
+        balances[one] = balances[one].add(half);
+        balances[two] = balances[two].add(half);
 
     }
     //Let the user withdraw their ether
@@ -61,10 +62,14 @@ contract Splitter is Paused{
         //the balance set to 0 because when calling again the balance would be bigger
         balances[msg.sender] = 0;
         //logging the Withdraw
-        emit LogWithdraw(msg.sender, amount);
+        emit LogWithdrew(msg.sender, amount);
         //transferring the money to the accounts
         msg.sender.transfer(amount);
         return true;
+    }
+    //getBalance
+    function getBalance(address stateBalance) public view returns(uint) {
+       return balances[stateBalance];
     }
 
 }
