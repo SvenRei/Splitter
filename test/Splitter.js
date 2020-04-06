@@ -219,4 +219,30 @@ contract('Splitter', (accounts) => {
     assert.strictEqual(checkEvent.args.sender, sender, "not the owner");
     assert.strictEqual(checkEvent.args.refunds.toString(), amount.toString(), "not the right refund");
   });
+
+  it("test: returnFunds should arrive the sender", async() => {
+    const amount = web3.utils.toWei("2", "Gwei");
+    await contractInstance.split(one, two, {from: sender, value: amount});
+    await contractInstance.pause({ from: sender });
+    await contractInstance.kill({ from: sender });
+
+    //getting the balance before Refund
+    const balanceBefore = await web3.eth.getBalance(sender);
+
+    const txObj = await contractInstance.returnFunds({ from: sender });
+
+    //getting the transaction for calculating gasCost
+    const tx = await web3.eth.getTransaction(txObj.tx);
+    //getting the receipt for calculating gasCost
+    const receipt = txObj.receipt;
+    //calculating gasCost
+    const gasCost = web3.utils.toBN(tx.gasPrice).mul(web3.utils.toBN(receipt.gasUsed));
+    //calculating expectetbalanceafter
+    const expectedBalanceAfter = web3.utils.toBN(balanceBefore).add(web3.utils.toBN(web3.utils.toWei("2", "Gwei"))).sub(web3.utils.toBN(gasCost));
+    //getting the balance after withdraw
+    const balanceAfter = await web3.eth.getBalance(sender);
+    //test if expectedBalanceAfter == balanceAfter
+    assert.strictEqual(expectedBalanceAfter.toString(), balanceAfter.toString(), "Balance of sender isn't right");
+
+  });
 });
