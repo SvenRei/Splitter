@@ -85,15 +85,14 @@ contract('Splitter', (accounts) => {
      //because of beforeEach the contract must be called again
      await contractInstance.split(one, two, {from: sender, value: amount});
      //call the contract from one
-     const withdrawObj = await contractInstance.withdraw({from: one});
+     const withdrawObj = await contractInstance.withdraw(web3.utils.toWei("0.5", "Gwei"), {from: one});
      //logging
      const { logs } = withdrawObj
      //setting for check
      const checkEvent = withdrawObj.logs[0];
      //check if the event emitted
-     truffleAssert.eventEmitted(withdrawObj, "LogWithdrew");
+     truffleAssert.eventEmitted(withdrawObj, "LogWithdraw");
      assert.strictEqual(checkEvent.args.from, one);
-     assert.strictEqual(checkEvent.args.remainder.toString(), web3.utils.toWei("0.5", "Gwei").toString());
     });
 
   //check for confirming the right balanaces
@@ -102,8 +101,8 @@ contract('Splitter', (accounts) => {
     const amount = web3.utils.toWei("1", "Gwei");
     await contractInstance.split(one, two, {from: sender, value: amount});
     //getting the balance after split (new function in Splitter.sol)
-    const balanceAfterOne = await (contractInstance.getBalance(one));
-    const balanceAfterTwo = await (contractInstance.getBalance(two));
+    const balanceAfterOne = await (contractInstance.balances(one));
+    const balanceAfterTwo = await (contractInstance.balances(two));
     //test
     assert.strictEqual(balanceAfterOne.toString(), web3.utils.toWei("0.5", "Gwei").toString(), "Balance of one isn't right");
     assert.strictEqual(balanceAfterTwo.toString(), web3.utils.toWei("0.5", "Gwei").toString(), "Balance of two isn't right");
@@ -113,9 +112,9 @@ contract('Splitter', (accounts) => {
     //setting the uneven amount (prime number for generating remainders)
     await contractInstance.split(one, two, {from: sender, value: amount = 23});
     //getting the balance after split (new function in Splitter.sol)
-    const balanceAfterSender = await (contractInstance.getBalance(sender));
-    const balanceAfterOne = await (contractInstance.getBalance(one));
-    const balanceAfterTwo = await (contractInstance.getBalance(two));
+    const balanceAfterSender = await (contractInstance.balances(sender));
+    const balanceAfterOne = await (contractInstance.balances(one));
+    const balanceAfterTwo = await (contractInstance.balances(two));
     //test
     assert.strictEqual(balanceAfterOne.toString(), "11", "Balance of one isn't right");
     assert.strictEqual(balanceAfterTwo.toString(), "11", "Balance of two isn't right");
@@ -131,7 +130,7 @@ contract('Splitter', (accounts) => {
     await contractInstance.split(one, two, {from: sender, value: amount1});
     await contractInstance.split(one, two, {from: sender, value: amount2});
     //getting the internal balance
-    const balanceAfterOne = await (contractInstance.getBalance(one));
+    const balanceAfterOne = await (contractInstance.balances(one));
     //test balanceAfterOne
     assert.strictEqual(web3.utils.toWei("3.5", "Gwei").toString(), balanceAfterOne.toString(), "Balance of one isn't right");
   });
@@ -145,7 +144,7 @@ contract('Splitter', (accounts) => {
     //getting the balance before withdraw
     const balanceBefore = await web3.eth.getBalance(one);
     //calling withdraw from one
-    const txObj = await contractInstance.withdraw({from: one});
+    const txObj = await contractInstance.withdraw(web3.utils.toWei("0.5", "Gwei"), {from: one});
     //getting the transaction for calculating gasCost
     const tx = await web3.eth.getTransaction(txObj.tx);
     //getting the receipt for calculating gasCost
@@ -166,10 +165,58 @@ contract('Splitter', (accounts) => {
     //because of beforeEach the contract must be called again
     await contractInstance.split(one, two, {from: sender, value: amount});
     //calling withdraw from one
-    await contractInstance.withdraw({from: one});
+    await contractInstance.withdraw(web3.utils.toWei("0.5", "Gwei"), {from: one});
     //getting balance after
-    const balanceAfterOne = await (contractInstance.getBalance(one));
+    const balanceAfterOne = await (contractInstance.balances(one));
     //test
     assert.strictEqual(balanceAfterOne.toString(), "0", "The balance of account one is wrong");
     });
+
+  it("test: the internal balance after withdrawing only 0.5 should be 0.5", async() => {
+    //setting the amount
+    const amount = web3.utils.toWei("2", "Gwei");
+    const amountWithdraw = web3.utils.toWei("0.5", "Gwei");
+    //because of beforeEach the contract must be called again
+    await contractInstance.split(one, two, {from: sender, value: amount});
+    //calling withdraw from one
+    await contractInstance.withdraw(amountWithdraw, {from: one});
+    //getting balance after
+    const balanceAfterOne = await (contractInstance.balances(one));
+    //test
+    assert.strictEqual(balanceAfterOne.toString(), amountWithdraw.toString(), "The balance of account one is wrong (only withdrew 0.5 )");
+    });
+
+  it("test: owner of the contract should get the remainder", async() => {
+    //setting the uneven amount (prime number for generating remainders)
+    await contractInstance.split(one, two, {from: sender, value: amount = 23});
+    await contractInstance.withdraw(1, {from: sender});
+    //getting the balance after split (new function in Splitter.sol)
+    const balanceAfterSender = await (contractInstance.balances(sender));
+    //test
+    assert.strictEqual(balanceAfterSender.toString(), "0", "Balance of sender isn't right");
+    });
+
+  it("test: kill of the contract", async() => {
+    //call kill from sender
+    await contractInstance.pause({ from: sender });
+    const killObj = await contractInstance.kill({ from: sender });
+    const { logs } = killObj;
+    const checkEvent = killObj.logs[0];
+    truffleAssert.eventEmitted(killObj, "LogKilled");
+    assert.strictEqual(checkEvent.args.sender, sender, "not the owner");
+  });
+
+  it("test: refund event", async() => {
+    const amount = web3.utils.toWei("2", "Gwei");
+    await contractInstance.split(one, two, {from: sender, value: amount});
+    await contractInstance.pause({ from: sender });
+    await contractInstance.kill({ from: sender });
+    const refundObj = await contractInstance.returnFunds({ from: sender });
+
+    const { logs } = refundObj;
+    const checkEvent = refundObj.logs[0];
+    truffleAssert.eventEmitted(refundObj, "LogRefunds");
+    assert.strictEqual(checkEvent.args.sender, sender, "not the owner");
+    assert.strictEqual(checkEvent.args.refunds.toString(), amount.toString(), "not the right refund");
+  });
 });
