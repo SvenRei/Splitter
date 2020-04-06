@@ -16,6 +16,7 @@ if (typeof web3 !== 'undefined') {
 const Splitter = truffleContract(splitterJson);
 Splitter.setProvider(web3.currentProvider);
 
+//accounts
 let sender = {address: {key: "#senderAddress", val: "0x"}, balance: {key: "#senderBalance", val: 0}};
 let one = {address: {key: "#oneAddress", val: "0x"}, balance: {key: "#oneBalance", val: 0}};
 let two = {address: {key: "#twoAddress", val: "0x"}, balance: {key: "#twoBalance", val: 0}};
@@ -49,11 +50,12 @@ window.addEventListener('load', function() {
            console.error(error);
     });
   });
-  //refresh the balances
+  //refresh the balances (refreshing the balances of one and two after split is buggy)
+  //iterating over the accounts to refresh the balance
   function refreshAllBalances(accounts) {
       $("#status").html("Refreshing balances...");
 
-      let accCounter = 0;
+      let counter = 0;
       const accNumber = accounts.length;
       console.log("length" + accounts.length);
 
@@ -65,9 +67,9 @@ window.addEventListener('load', function() {
                   console.log("Balanace of acc" + bal);
                   $(account.balance.key).html(account.balance.val);
 
-                  accCounter += 1;
-                  //console.log("accCounter" + accCounter);
-                  if (accCounter == accNumber) {
+                  counter += 1;
+                  //console.log("counter" + counter);
+                  if (counter == accNumber) {
                       $("#status").html("Balances refreshed");
                   }
               })
