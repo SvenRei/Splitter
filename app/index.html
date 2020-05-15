@@ -9,17 +9,19 @@
 
 </head>
 <body>
-   <div>sender (<span id="senderAddress">Loading...</span>) balance: <span id="senderBalance">Loading...</span> wei</div>
-   <div>one (<span id="oneAddress">Loading...</span>) balance: <span id="oneBalance">Loading...</span> wei</div>
-   <div>two (<span id="twoAddress">Loading...</span>) balance: <span id="twoBalance">Loading...</span> wei</div>
+   <div>sender  balance: <span id="senderBalance">Loading...</span> wei</div>
+   <div>one balance: <span id="oneBalance">Loading...</span> wei</div>
+   <div>two balance: <span id="twoBalance">Loading...</span> wei</div>
    </br>
   <div>
       Split <input name="amount" type="number" placeholder="0" /> Accounts
       one <input name="recipient_one" type="text" placeholder="0x0011223344556677889900112233445566778899" />
       two <input name="recipient_two" type="text" placeholder="0x0011223344556677889900112233445566778899" />
       <button id="split">split</button>.
-      <button id="refresh">refresh</button>.
   </div>
+      Withdraw <input name="withdrawAmount" type="number" placeholder="0" /> Accounts
+      Amount <input name="recipient" type="text" placeholder="0x0011223344556677889900112233445566778899" />
+      <button id="withdraw">withdraw</button>.
   </div>
   <div id="status"></div>
 <script src="js/app.js"></script>
