@@ -34,7 +34,7 @@ contract Splitter is Killed{
         require(one != two, "the recpipients can't be the same"); //some guy could go in with the same address
         require(msg.sender != one && msg.sender != two, "the sender can't be a recipient"); //ALice isn't allowed to get money
         //the value must be bigger than zero
-        require(msg.value > 2, "At least two Wei should be splittet");
+        require(msg.value >= 2, "At least two Wei should be splittet");
 
         //division with safemath
         uint half = msg.value.div(2);
